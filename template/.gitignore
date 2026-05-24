@@ -1,0 +1,25 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Model (too large for GitHub)
+model/*.h5
+
+# Uploaded patient images (private data)
+static/uploads/*
+
+# Environment variables
+.env
+
+# VS Code settings
+.vscode/
+
+# Windows junk
+Thumbs.db
+desktop.ini
+
+# Mac junk
+.DS_Store

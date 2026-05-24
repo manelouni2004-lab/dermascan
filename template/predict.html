@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %} — New Scan{% endblock %}
+
+{% block extra_styles %}
+.scan-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--rose);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--charcoal);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px rgba(196,113,74,0.12);
+  background: var(--white);
+}
+.upload-zone {
+  border: 2.5px dashed var(--rose);
+  border-radius: var(--radius);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--cream);
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  background: var(--blush);
+  border-color: var(--terracotta);
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+.upload-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+.upload-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--charcoal); }
+.upload-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.upload-formats { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+.fmt-tag {
+  background: var(--white);
+  border: 1px solid var(--rose);
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--terracotta);
+  font-weight: 600;
+}
+#preview-box { display: none; margin-top: 16px; }
+#preview-box img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--rose);
+}
+.preview-name { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+.info-card {
+  background: linear-gradient(135deg, var(--charcoal), #3a3030);
+  border-radius: var(--radius);
+  padding: 26px;
+  color: white;
+}
+.info-card h3 { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 16px; }
+.info-step { display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-start; }
+.step-num {
+  width: 28px; height: 28px;
+  background: var(--terracotta);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.step-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
+.step-text span { font-size: 12px; color: #b0a898; }
+.info-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 18px 0; }
+.info-note {
+  font-size: 12px; color: #b0a898;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px; line-height: 1.6;
+}
+.submit-row { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+.btn-submit {
+  padding: 14px 36px;
+  background: var(--terracotta);
+  color: white; border: none;
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-submit:hover {
+  background: var(--brick);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(196,113,74,0.35);
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>New Scan Analysis</h1>
+  <p>Upload a dermoscopic image to receive an AI-powered assessment.</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="scan-grid">
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:20px;">Patient Information</div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g. Sarah Mitchell" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Age</label>
+          <input type="number" name="age" class="form-input" placeholder="e.g. 34" min="1" max="120" required />
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:16px;">Skin Lesion Image</div>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" name="image" id="image-input" accept=".png,.jpg,.jpeg,.gif" required />
+          <span class="upload-icon">🖼️</span>
+          <div class="upload-title">Drop image here</div>
+          <div class="upload-sub">or click to browse your files</div>
+          <div class="upload-formats">
+            <span class="fmt-tag">PNG</span>
+            <span class="fmt-tag">JPG</span>
+            <span class="fmt-tag">JPEG</span>
+            <span class="fmt-tag">GIF</span>
+          </div>
+        </div>
+        <div id="preview-box">
+          <img id="preview-img" src="" alt="Preview" />
+          <div class="preview-name" id="preview-name"></div>
+        </div>
+        <div class="submit-row">
+          <button type="submit" class="btn-submit">🧬 Analyse Image</button>
+          <span style="font-size:12px;color:var(--muted);">Results in seconds</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <h3>How it works</h3>
+        <div class="info-step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <strong>Enter patient details</strong>
+            <span>Name and age are recorded alongside the result.</span>
+          </div>
+        </div>
+        <div class="info-step">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <strong>Upload the image</strong>
+            <span>Use a clear dermoscopic photo for best accuracy.</span>
+          </div>
+        </div>
+        <div class="info-step">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <strong>AI analysis</strong>
+            <span>Our VGG16 model classifies the lesion as benign or malignant.</span>
+          </div>
+        </div>
+        <div class="info-step">
+          <div class="step-num">4</div>
+          <div class="step-text">
+            <strong>Review results</strong>
+            <span>A confidence score and diagnosis are displayed instantly.</span>
+          </div>
+        </div>
+        <hr class="info-divider" />
+        <div class="info-note">
+          ⚕️ <strong>Clinical Notice:</strong> DermaScan AI is a decision-support tool. Always validate results with a qualified dermatologist.
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+const input = document.getElementById('image-input');
+const previewBox = document.getElementById('preview-box');
+const previewImg = document.getElementById('preview-img');
+const previewName = document.getElementById('preview-name');
+const uploadZone = document.getElementById('upload-zone');
+
+input.addEventListener('change', function() {
+  const file = this.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewName.textContent = file.name;
+      previewBox.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  input.files = e.dataTransfer.files;
+  input.dispatchEvent(new Event('change'));
+});
+</script>
+{% endblock %}

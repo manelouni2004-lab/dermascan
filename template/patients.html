@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %} — Patient Records{% endblock %}
+
+{% block extra_styles %}
+.patients-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.search-bar { display: flex; gap: 12px; align-items: center; }
+.search-input {
+  padding: 10px 16px;
+  border: 1.5px solid var(--rose);
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  background: var(--white);
+  outline: none; width: 220px;
+  transition: all 0.2s;
+}
+.search-input:focus { border-color: var(--terracotta); box-shadow: 0 0 0 3px rgba(196,113,74,0.12); }
+.table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: 0 2px 16px var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--charcoal); }
+thead th {
+  padding: 16px 20px; text-align: left;
+  font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #b0a898; font-weight: 600;
+}
+tbody tr { border-bottom: 1px solid var(--blush); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--cream); }
+td { padding: 16px 20px; font-size: 14px; color: var(--charcoal); vertical-align: middle; }
+.patient-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), var(--terracotta));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 13px;
+  margin-right: 10px; flex-shrink: 0;
+}
+.patient-cell { display: flex; align-items: center; }
+.patient-name { font-weight: 600; }
+.patient-id { font-size: 11px; color: var(--muted); }
+.result-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 13px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+}
+.result-tag.benign { background: var(--mint); color: var(--forest); }
+.result-tag.malignant { background: #fce8e8; color: #8b2020; }
+.prob-bar-mini { height: 6px; background: var(--blush); border-radius: 50px; overflow: hidden; width: 80px; margin-top: 4px; }
+.prob-fill-mini { height: 100%; border-radius: 50px; }
+.prob-fill-mini.benign { background: var(--sage); }
+.prob-fill-mini.malignant { background: #e07070; }
+.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--rose); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+.count-chip { background: var(--blush); color: var(--terracotta); border-radius: 50px; padding: 4px 12px; font-size: 13px; font-weight: 600; }
+{% endblock %}
+
+{% block content %}
+<div class="patients-header">
+  <div class="page-header" style="margin-bottom:0;">
+    <h1>Patient Records</h1>
+    <p>All historical scan results, most recent first.</p>
+  </div>
+  <div class="search-bar">
+    <span class="count-chip">{{ patients|length }} records</span>
+    <input type="text" class="search-input" id="search" placeholder="🔍 Search patients…" />
+    <a href="{{ url_for('predict') }}" class="btn btn-primary">+ New Scan</a>
+  </div>
+</div>
+
+<div class="table-wrap">
+  {% if patients %}
+  <table id="patients-table">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Age</th>
+        <th>Result</th>
+        <th>Confidence</th>
+        <th>Image</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in patients %}
+      <tr>
+        <td>
+          <div class="patient-cell">
+            <div class="patient-avatar">{{ p.name[0]|upper }}</div>
+            <div>
+              <div class="patient-name">{{ p.name }}</div>
+              <div class="patient-id">#{{ '%04d'|format(p.id) }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ p.age }} yrs</td>
+        <td>
+          <span class="result-tag {{ p.result|lower }}">
+            {% if p.result == 'BENIGN' %}✓{% else %}⚠{% endif %}
+            {{ p.result }}
+          </span>
+        </td>
+        <td>
+          <div style="font-size:13px;font-weight:600;">{{ p.prob_display }}%</div>
+          <div class="prob-bar-mini">
+            <div class="prob-fill-mini {{ p.result|lower }}" style="width:{{ p.prob_display }}%"></div>
+          </div>
+        </td>
+        <td><img src="{{ p.image_url }}" class="thumb" alt="Scan" /></td>
+        <td style="font-size:13px;color:var(--muted);">
+          {{ p.created_at.strftime('%d %b %Y') if p.created_at else '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">📭</span>
+    <p>No patients yet. <a href="{{ url_for('predict') }}">Run your first scan →</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#patients-table tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}
